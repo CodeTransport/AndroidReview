@@ -29,16 +29,17 @@ android:launchMode="standard|singleInstance|singleTask|singleTop"来控制Acivit
 4、界面异常退出保存状态：
 
 当某个activity变得“容易”被系统销毁时，该activity的onSaveInstanceState就会被执行，除非该activity是被用户主动销毁的，例如当用户按BACK键的时候。 
-由于onSaveInstanceState()方法调用的不确定性，你应该只使用这个方法去记录activity的瞬间状态（UI的状态）。不应该用这个方法去存储持久化数据。当用户离开这个activity的时候应该在onPause()方法中存储持久化数据（例如应该被存储到数据库中的数据）。
+由于onSaveInstanceState()方法调用的不确定性，你应该只使用这个方法去记录activity的瞬间状态（UI的状态）。不应该用这个方法去存储持久化数据。
+当用户离开这个activity的时候应该在onPause()方法中存储持久化数据（例如应该被存储到数据库中的数据）。
 
 onSaveInstanceState()如果被调用，这个方法会在onStop()前被触发，但系统并不保证是否在onPause()之前或者之后触发。
 
-恢复出保存的状态：onRestoreInstanceState：
+恢复出保存的状态：onRestoreInstanceState
 
-onRestoreInstanceState的bundle参数也会传递到onCreate方法中，你也可以选择在onCreate方法中做数据还原。 还有onRestoreInstanceState在onstart之后执行。
+onRestoreInstanceState的bundle参数也会传递到onCreate方法中，你也可选择在onCreate方法中做数据还原。onRestoreInstanceState在onstart之后执行。
 
 5、广播(Broadcast Receiver)的两种动态注册和静态注册有什么区别。
 
     静态注册：在AndroidManifest.xml文件中进行注册，当App退出后，Receiver仍然可以接收到广播并且进行相应的处理
 
-动态注册：在代码中动态注册，当App退出后，也就没办法再接受广播了。
+    动态注册：在代码中动态注册，当App退出后，也就没办法再接受广播了。
