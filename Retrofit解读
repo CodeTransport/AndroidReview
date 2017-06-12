@@ -1,0 +1,48 @@
+什么是Retrofit:
+    开发App过程中，总离不开一些网络请求，因此一些开源的网络开发包随之而出并得以广泛应用。比如Google开发的Volley，loopj的Android Async Http，Square开源的OkHttp或者Retrofit等。
+    Rerofit以其良好的扩展性以及低耦合得到广泛开发者的青睐，但它究竟是什么呢？官网给出一个定义：
+    A type-safe HTTP client for Android and Java。
+    type-safe 顾名思义 类型安全。因此我们从其类型安全去一步步的剖析Retrofit.
+    
+    Retrofit简单的说它是一个基于OkHttp的RESTFUL Api请求工具，从功能上来说和Google的Volley功能上很相似。
+    Retrofit的使用：
+    在Retrofit源码中给出一个sample：
+    Retrofit retrofit = new Retrofit.Builder()
+ *     .baseUrl("https://api.example.com/")
+ *     .addConverterFactory(GsonConverterFactory.create())
+ *     .build();
+ *
+ * MyApi api = retrofit.create(MyApi.class);
+ * Response&lt;User&gt; user = api.getUser().execute();
+ 可从代码中想到，在类Retrofit中创建一个Builder构建器，然后可以利用构建器中的方法填充参数，提供了一个基本的url，然后传入一个响应数据的转换器，将响应的Gson数据转换为Java的Api，最后调用build（）方法得到一个Retrofit.
+ MyApi是自己创建一个Java类，在该类中有一个方法getUser(),即我们将要执行的http请求，获取user数据.
+ retrofit.create()方法传入一个Java的class类，然后得到一个类的对象，很明显，是要创建一个类的实例调用其方法来得到响应。那具体怎么实现的呢？是new出来的还是利用反射呢？那得具体看代码，这也是Retrofit的一处值得学习的代码。
+ /**Method parameters can be used to replace parts of the URL by annotating them with
+   * {@link retrofit2.http.Path @Path}.**/
+  public <T> T create(final Class<T> service) {
+    Utils.validateServiceInterface(service);
+    if (validateEagerly) {
+      eagerlyValidateMethods(service);
+    }
+    return (T) Proxy.newProxyInstance(service.getClassLoader(), new Class<?>[] { service },
+        new InvocationHandler() {
+          private final Platform platform = Platform.get();
+
+          @Override public Object invoke(Object proxy, Method method, @Nullable Object[] args)
+              throws Throwable {
+            // If the method is a method from Object then defer to normal invocation.
+            if (method.getDeclaringClass() == Object.class) {
+              return method.invoke(this, args);
+            }
+            if (platform.isDefaultMethod(method)) {
+              return platform.invokeDefaultMethod(method, service, proxy, args);
+            }
+            ServiceMethod<Object, Object> serviceMethod =
+                (ServiceMethod<Object, Object>) loadServiceMethod(method);
+            OkHttpCall<Object> okHttpCall = new OkHttpCall<>(serviceMethod, args);
+            return serviceMethod.callAdapter.adapt(okHttpCall);
+          }
+        });
+  }
+    从上面Retrofit的使用来看，Retrofit就是充当了一个适配器（Adapter）的角色：将一个Java接口翻译成一个Http请求，然后用OkHttp去发送这个请求。
+    而Retrofit的大脑，即是serviceMethod,相当于一个中央处理器，接受请求，转换成http请求，然后把得到的响应再次转换成客户需要的。
