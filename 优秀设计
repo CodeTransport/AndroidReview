@@ -1,0 +1,6 @@
+SlidingLayout
+是一种Android平台的View控件，可以帮助你实现类似微信网页浏览的下拉功能，也可以帮助你实现类似iOS中UITableView的下拉上拉弹跳的果冻效果。
+SlidingLayout完美兼容Android自带库和兼容库的所有View组件，包括RecyclerView、ListView、ScrollView以及WebView等等。
+SlidingLayout简单易用，最低支持Android api v9。
+Project site： https://github.com/HomHomLin/SlidingLayout.
+Demo: https://github.com/HomHomLin/SlidingLayout/tree/master/demo.
