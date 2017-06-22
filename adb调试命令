@@ -1,0 +1,68 @@
+程序调试过程中，输入几条命令，通过响应能帮助我们快速定位故障点，从而尽快解决故障，早点下班。因此，Android也提供了功能强大的命令，提高程序员的加班效率。
+那介绍一下常用的调试命令。
+1.基础命令
+
+第一个：cat 命令
+功能：用于查看文件内容。该命令是最基础，最常用的，看程序是否缓存文件到本地，用cat命令查看缓存数据是否正确。
+用法：cat db.file
+
+第二个：echo/touch 命令
+功能：写数据到文件。除了查看文件内容，可能需要添加一些测试数据到文件测试程序的功能。
+用法 echo "text Data" > db.file
+
+第三个： adb shell dumpsys activity top 命令
+功能：查看当前activity的信息
+用法：adb shell dumpsys activity top
+
+第四个： adb shell dumpsys meminfo 命令
+功能： 查看指定进程名或者是进程id的内存信息
+用法： adb shell dumpsys meminfo 11976（com.package.goolge）
+
+第五个： adb shell dumpsys dbinfo 命令
+功能： 查看指定包名应用的数据库存储信息
+用法： adb shell dumpsys dbinfo com.package.goolge
+
+第六个： adb intall 命令
+功能： 安装应用包apk文件
+用法： adb install F:\test.apk
+有可能之前已经安装，然后更改了部分代码，需要不用卸载之前软件的基础上，再重新安装，使用：  adb install –r F:\test.apk
+
+
+第七个： adb uninstall 命令
+功能： 有安装就会有卸载，该命令是卸载app
+用法： adb uninstall cn.package.google
+
+
+第八个： adb pull 命令
+功能： 从设备上下载文件到本地
+用法： adb pull /sdcard/tmp.txt F:\
+
+第九个： adb push 命令
+功能： 将本地文件上传到设备中
+用法： adb push F:\test.txt /sdcard
+
+
+第十个： adb shell screencap 命令
+功能： 截屏，有时候需要截取屏幕作为证据保存下来
+用法： adb shell screencap –p /sdcard/tmp.png
+
+十一个： adb shell screenrecord 命令
+功能： 录屏，将对app的一系列操作保存下来
+用法： adb shell screenrecord /sdcard/tmp.mp4
+
+十二个： adb logcat 命令
+功能： 查看当前日志信息
+用法： adb logcat |findstr cn.package.google
+
+十三个： am start 命令
+功能： 启动一个应用
+用法：am start -n com.android.browser/com.android.browser.BrowserActivity
+
+十四个： am startservice 命令
+功能： 启动一个服务， 与上面启动应用相似
+用法：  am startservice -n com.android.traffic/com.android.traffic.maniservice
+
+
+
+
+
