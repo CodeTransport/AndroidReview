@@ -1,5 +1,138 @@
 WebView性能优化总结
+为了打破原生系统开发的局限性，方便开发者实现在app内展示网页并与网页交互的需求，Android内置了一款高性能webkit内核浏览器，在SDK中封装为一个叫做
+WebView组件。首先，我们知道在Android系统中，负责展示界面并与用户交互的是View控件,webView显然也是一种View,它继承自AbsoluteLayout，
+展示网页的同时，也可以在其中放入其他的子View。
+本文主要介绍开发工作中webview的使用：首先，使用webView 之前需要在AndroidManifest.xml文件中声明访问网络的权限：
 
+<uses-permission android:name="android.permission.INTERNET"/>
+
+然后需要在界面中实例化该webview。实例化完之后，我们就可以使用它了，而webView里有哪些重要方法呢？
+首先最重要的就是加载页面：loadUrl() .
+该方法
+
+String getUrl()：获取当前页面的URL。
+//打开本包内asset目录下的demo.html文件
+myWebView.loadUrl(" file:///android_asset/demo.html ");  
+//打开本地sd卡内的demo.html文件
+myWebView.loadUrl("content://com.android.htmlfileprovider/sdcard/demo.html");
+//打开指定互联网URL的html文件
+myWebView.loadUrl(" http://www.example.com/demo.html");
+
+一般都需要设置该webView支持：
+
+WebView.getSettings().setJavaScriptEnabled(true);
+
+其中webView.getSettings()方法是获取WebSettings，该类是用来管理WebView配置的类。
+当WebView第一次创建时，内部会包含一个默认配置的集合。如果更改默认配置，便可以通过WebSettings里的方法来进行设置。
+它的生命周期是与WebView本身相关联，如果webView被销毁了，那webviewSetting也相应变得无效。接下来看一下webViewSetting中除了上面的方法有哪些设置：
+
+setJavaScriptCanOpenWindowsAutomatically(boolean flag)：
+设置WebView是否可以由JavaScript自动打开窗口，默认为false.
+
+setBlockNetworkImage(boolean flag)：禁止或允许WebView从网络上加载图片。
+
+setSupportZoom(boolean support)：设置是否支持缩放。
+
+setBuiltInZoomControls(boolean enabled)：显示或不显示缩放按钮
+
+setAppCacheEnabled(boolean flag)：启用或禁用应用缓存。
+
+setAppCachePath(String appCachePath)：设置缓存的路径。
+
+setCacheMode(int mode)：用来设置WebView的缓存模式。
+
+缓存模式有四种：
+
+LOAD_DEFAULT：默认的缓存使用模式。在进行页面前进或后退的操作时，如果缓存可用并未过期就优先加载缓存，否则从网络上加载数据。
+这样可以减少页面的网络请求次数，并且减少页面响应时间。
+
+LOAD_CACHE_ELSE_NETWORK：只要缓存可用就加载缓存，哪怕它们已经过期失效。如果缓存不可用就从网络上加载数据。
+
+LOAD_NO_CACHE：不加载缓存，只从网络加载数据。
+
+LOAD_CACHE_ONLY：不从网络加载数据，只从缓存加载数据。
+
+因此，在具体使用的时候，需要根据页面显示的情况选择不同的缓存模式。
+
+setUserAgentString(String ua)：设置WebView的UserAgent值。
+
+setDefaultEncodingName(String encoding)：设置编码格式，通常都设为“UTF-8”。
+
+setDefaultFixedFontSize(int size)：设置默认填充字体大小，默认16，取值区间为[1-72]，超过范围，使用其上限值。
+
+setDefaultFontSize(int size)：设置默认字体大小，默认16，取值区间[1-72]，超过范围，使用其上限值。
+
+setMinimumFontSize：设置最小字体，默认8. 取值区间[1-72]，超过范围，使用其上限值。
+
+上面只是平常使用的一些方法，还有一些不经常使用的方法在此不再介绍。
+
+除了webviewSettings类之外，还有一个比较重要的类：WebViewClient
+
+该类主要负责处理webView的各种通知和请求事件。该类中的主要方法：
+
+onLoadResource(WebView view, String url)：加载页面的资源（图片，文字等）时会回调，每一个资源的加载都会调用一次。
+
+onPageStarted(WebView view, String url, Bitmap favicon)：在WebView开始加载页面且仅在整个页面加载时回调，只加载一次。
+
+onPageFinished(WebView view, String url)：在WebView完成一个页面加载时调用一次。
+
+onReceivedError(WebView view, WebResourceRequest request, WebResourceError error)： 当web页面加载过程中发生错误连接时回调的方法，
+该方法是在API版本23之后才有的，之前的方法参数中包含Http错误码，并且与之前版本的不同之处还有 该方法会加载页面中每个资源的时候出现错误时都会回调，
+因此该方法不适合做比较费时的操作。
+
+onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse)：该方法是为了弥补上面方法在服务器
+返回错误码时无法响应的问题，当服务器返回一个HTTP ERROR并且它的status code>=400时，该方法便会回调。
+
+boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request)：该方法从字面意思看是是否重新加载url，但其功能是当当我们没有
+给WebView提供WebViewClient时，WebView会向ActivityManager寻求一个适合的处理者（比如系统自带的浏览器）来加载这个url,启动自带的浏览器加载，完全忽视
+我们App的加载功能，因此我们需要给WebView提供一个WebViewClient，并重写该方法返回true来告知WebView url的加载就在当前页面的webView中加载。
+
+boolean shouldOverrideKeyEvent(WebView view, KeyEvent event)：默认值为false，重写此方法并return true可以让我们在WebView内处理按键事件。
+
+从上面可以看出，webViewClient类主要负责url的加载过程中的问题，比如加载页面开始，出错以及是否在哪加载的问题，像是webview的内部管家，而接下来的类
+更多的是负责处理webview外部事务: WebChromeClient
+
+onProgressChanged(WebView view, int newProgress)：当页面加载的进度发生改变时回调，用来告知主程序当前页面的加载进度。
+
+onReceivedIcon(WebView view, Bitmap icon)：用来接收web页面的icon, 然后显示在页面的顶端。
+
+onReceivedTitle(WebView view, String title)：用来接收web页面的title，方法中将页面的title设置到标题栏。
+
+Bitmap getDefaultVideoPoster()：当加载的Web页面包含视频时，可以在HTML里为它设置一个预览图，WebView会在绘制页面时根据它的宽高为它布局。
+
+boolean onJsAlert(WebView view, String url, String message, JsResult result)：处理Javascript中的Alert对话框。
+
+boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result)：处理Javascript中的
+Prompt对话框。
+
+boolean onJsConfirm(WebView view, String url, String message, JsResult result)：处理Javascript中的Confirm对话框
+
+onPermissionRequest(PermissionRequest request)：该方法在web页面请求某个尚未被允许或拒绝的权限时回调，
+主程序在此时调用grant(String [])或deny()方法。如果该方法没有被重写，则默认拒绝web页面请求的权限。
+
+
+介绍完主要的类 我们看一下webView 是具体怎么与JS 交互的：
+
+WebView调用JavaScript无参无返回值函数
+
+String call = "javascript:函数名()";
+webView.loadUrl(call);
+WebView调用JavScript有参无返回值函数
+
+String call = "javascript:函数名(\"" + "函数传参" + "\")";
+webView.loadUrl(call);
+WebView调用JavaScript有参数有返回值的函数
+
+  private void evaluateJavaScript(WebView webView) {
+    webView.evaluateJavascript("get方法()", new ValueCallback<String>() {
+      @Override public void onReceiveValue(String s) {
+        Log.d("find", s);
+      }
+    });
+  }
+
+
+webView的优化：
 一个加载网页的过程中，native、网络、后端处理、CPU都会参与，各自都有必要的工作和依赖关系；让他们相互并行处理而不是相互阻塞才可以让网页加载更快：
 
     1.WebView初始化慢，可以在初始化同时先请求数据，让后端和网络不要闲着。
