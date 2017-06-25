@@ -8,9 +8,7 @@ WebView组件。首先，我们知道在Android系统中，负责展示界面并
 
 然后需要在界面中实例化该webview。实例化完之后，我们就可以使用它了，而webView里有哪些重要方法呢？
 首先最重要的就是加载页面：loadUrl() .
-该方法
-
-String getUrl()：获取当前页面的URL。
+不同存储位置的url，其url的表示也不同：
 //打开本包内asset目录下的demo.html文件
 myWebView.loadUrl(" file:///android_asset/demo.html ");  
 //打开本地sd卡内的demo.html文件
@@ -18,7 +16,25 @@ myWebView.loadUrl("content://com.android.htmlfileprovider/sdcard/demo.html");
 //打开指定互联网URL的html文件
 myWebView.loadUrl(" http://www.example.com/demo.html");
 
-一般都需要设置该webView支持：
+除了加载页面，还有获取当前页面的url : String getUrl();
+
+reload()：重新reload当前的URL，即刷新。
+
+boolean canGoBack()：用来确认WebView里是否还有可回退的历史记录。
+
+boolean canGoForward()：用来确认WebView是否还有可向前的历史记录。
+
+clearCache(boolean includeDiskFiles)：清空网页访问留下的缓存数据。由于缓存是全局的,因此传入的参数代表是否也删除磁盘中保存的缓存。
+
+clearHistory()：清除当前webview访问的历史记录。
+
+clearFormData()：清除自动完成填充的表单数据。需要注意的是，该方法仅仅清除当前表单域自动完成填充的表单数据，并不会清除WebView存储到本地的数据。
+
+pageUp(boolean top)：将WebView展示的页面滑动至顶部
+
+pageDown(boolean bottom)：将WebView展示的页面滑动至底部。
+
+除了上面介绍的webView类的方法，我们还需要其余类的支持：比如一般都需要设置该webView支持：
 
 WebView.getSettings().setJavaScriptEnabled(true);
 
