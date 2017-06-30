@@ -3,7 +3,8 @@ AsyncTask的缺陷和问题
 关于线程池：asynctask对应的线程池ThreadPoolExecutor都是进程范围内共享的，都是static的，所以是asynctask控制着进程范围内所有的子类实例。
 由于这个限制的存在，当使用默认线程池时，如果线程数超过线程池的最大容量，线程池就会爆掉(3.0后默认串行执行，不会出现这个问题)。针对这种情况，
 可以尝试自定义线程池，配合asynctask使用。
-
+AsyncTask内部会创建一个进程作用域的线程池来管理要运行的任务，也就就是说当你调用了AsyncTask的execute()方法后，
+AsyncTask会把任务交给线程池，由线程池来管理创建Thread和运行Therad。
 关于默认线程池：核心线程池中最多有CPU_COUNT+1个，最多有CPU_COUNT*2+1个，线程等待队列的最大等待数为128，但是可以自定义线程池。
 线程池是由AsyncTask来管理的，线程池允许tasks并行运行，需要注意的是并发情况下数据的一致性问题，新数据可能会被老数据覆盖掉，类似volatile变量。
 所以希望tasks能够串行运行的话，使用SERIAL_EXECUTOR。
@@ -46,3 +47,19 @@ AsyncTask在不同的SDK版本中的区别：
 
 在Android1.6之前的版本，AsyncTask是串行的，在1.6至2.3的版本，改成了并行的。在2.3之后的版本又做了 修改，可以支持并行和串行，当想要串行执行时，
 直接执行execute()方法，如果需要执行executeOnExecutor(Executor)。
+
+5、使用AsyncTask需要注意的地方
+
+    AsnycTask内部的Handler需要和主线程交互，所以AsyncTask的实例必须在UI线程中创建
+
+    AsyncTaskResult的doInBackground(mParams)方法执行异步任务运行在子线程中，其他方法运行在主线程中，可以操作UI组件。
+
+    一个AsyncTask任务只能被执行一次。
+
+    运行中可以随时调用AsnycTask对象的cancel(boolean)方法取消任务，如果成功，调用isCancelled()会返回true，并且不会执行 onPostExecute() 方法，
+    而是执行 onCancelled() 方法。
+
+    对于想要立即开始执行的异步任务，要么直接使用Thread，要么单独创建线程池提供给AsyncTask。默认的AsyncTask不一定会立即执行你的任务，
+    除非你提供给他一个单独的线程池。如果不与主线程交互，直接创建一个Thread就可以了。
+    
+
