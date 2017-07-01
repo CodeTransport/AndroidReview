@@ -69,7 +69,9 @@ ExampleFragment fragment = (ExampleFragment) getFragmentManager().findFragmentBy
     在Fragment中可以通过getActivity得到当前绑定的Activity的实例。
 
     创建activity事件回调函数，在fragment内部定义一个回调接口，宿主activity来实现它。
-
+　使用Fragment 能够把内存缓存对象传递到新的activity实例中，调用setRetainInstance(true)) 方法来保留Fragment实例。当activity重新创建好后，
+ 被保留的Fragment依附于activity而存在，通过Fragment就可以获取到已经存在的内存缓存对象了，这样就可以快速的获取到图片，并设置到ImageView上，
+ 给用户一个流畅的体验。
 
 5、广播(Broadcast Receiver)的两种动态注册和静态注册有什么区别。
 
