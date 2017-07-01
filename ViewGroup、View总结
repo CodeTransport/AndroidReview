@@ -31,3 +31,34 @@ onLayout()方法(如果该View是ViewGroup对象，需要实现该方法，对�
 调用onDraw()方法绘制视图本身   (每个View都需要重载该方法，ViewGroup不需要实现该方法)
 
 drawChild()去重新回调每个子视图的draw()方法
+
+4、View以及ViewGroup的事件拦截：
+
+事件处理流程为：
+dipatchTouchEvent:
+    true: 在该方法中直接处理。
+    false: 不分发事件，直接自己消费
+    super(): 调用onInterceptTouchEvent()方法
+OnInterceptTouchEvent:
+    true super ： 直接拦截掉，然后消费
+    false: 不拦截 调用onTouchEvent()方法
+ onTouchEvent():
+    true: 消费
+    false super（）： 不消费，转给父类的onTouchEvent()事件
+ 
+
+    如果ViewGroup找到了能够处理该事件的View，则直接交给子View处理，自己的onTouchEvent不会被触发；　
+
+    可以通过复写onInterceptTouchEvent(ev)方法，拦截子View的事件（即return true），把事件交给自己处理，则会执行自己对应的onTouchEvent方法。
+
+    子View可以通过调用getParent().requestDisallowInterceptTouchEvent(true); 阻止ViewGroup对其MOVE或者UP事件进行拦截；　　
+
+    一个点击事件产生后，它的传递过程如下： Activity->Window->View。顶级View接收到事件之后，就会按相应规则去分发事件。如果一个View的onTouchEvent方法返回false，那么将会交给父容器的onTouchEvent方法进行处理，逐级往上，如果所有的View都不处理该事件，则交由Activity的onTouchEvent进行处理。　
+
+    如果某一个View开始处理事件，如果他不消耗ACTION_DOWN事件（也就是onTouchEvent返回false），则同一事件序列比如接下来进行ACTION_MOVE，则不会再交给该View处理。
+
+    ViewGroup默认不拦截任何事件。　
+
+    诸如TextView、ImageView这些不作为容器的View，一旦接受到事件，就调用onTouchEvent方法，它们本身没有onInterceptTouchEvent方法。正常情况下，它们都会消耗事件（返回true），除非它们是不可点击的（clickable和longClickable都为false），那么就会交由父容器的onTouchEvent处理。　
+
+    点击事件分发过程如下 dispatchTouchEvent—->OnTouchListener的onTouch方法—->onTouchEvent-->OnClickListener的onClick方法。也就是说，我们平时调用的setOnClickListener，优先级是最低的，所以，onTouchEvent或OnTouchListener的onTouch方法如果返回true，则不响应onClick方法...
