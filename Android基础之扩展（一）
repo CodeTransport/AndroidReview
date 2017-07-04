@@ -1,0 +1,42 @@
+1、Serializable和Parcelable
+  序列化，表示将一个对象转换成可存储或可传输的状态。序列化后的对象可以在网络上进行传输，也可以存储到本地。
+    Serializable（Java自带）：序列化的意思，表示将一个对象转换成可存储或可传输的状态。序列化后的对象可以在网络上进行传输，也可以存储到本地。
+    Parcelable（android 专用）：
+    使用Parcelable都可以实现Serializable的功能。
+    不同于将对象进行序列化，Parcelable方式的实现原理是将一个完整的对象进行分解，而分解后的每一部分都是Intent所支持的数据类型，也就实现传递对象的功能。
+
+2、Context相关
+
+Activity和service以及Application的Context是不一样的，Activity单独继承自ContextThemeWrapper,其他的继承自ContextWrapper.
+每一个Activity和Service以及Alpplicaiton的Context都是一个ContextImpl对象，意思是Activity、Service以及Application都是一个Context的实例对象。
+在Activity或者Service中通过getApplication()方法回去该Application实例，但在其余两个组件中，该方法并未定义，那我们如何获取该Application呢？
+方法就是通过getApplicationContext()方法，该方法的作用域比getApplication()方法更广，因此该方法在任何地方都可以适用。
+注意的是 创建Toast以及对话框的时候不可以用getApplicaiton()的Context，可以用Activity的context，原因是易导致内存泄露。
+在这里可能需要说一下，我们在程序中调用弹出Toast对话框的时候，尽量封装一下，避免连续几次弹出对话框，导致不好的交互。（方法是可设置单例模式，在其中根据Context
+传入类型弹出相应Toast）。
+
+上面介绍，Activity,Service 以及Applicaiton的Context 是不同的实例对象，那我们程序中有多少Context呢？
+Context的数量等于Activity的个数 + Service的个数 + 1，这个1为Application
+
+3、SurfaceView和View的最本质的区别
+
+SurfaceView是在一个新起的单独线程中可以重新绘制画面，而view必须在UI的主线程中更新画面。
+
+在UI的主线程中更新画面可能会引发问题，比如你更新的时间过长，那么你的主UI线程就会被你正在画的函数阻塞。
+那么将无法响应按键、触屏等消息。当使用SurfaceView由于是在新的线程中更新画面所以不会阻塞你的UI主线程。但这也带来了另外一个问题，就是事件同步。
+比如你触屏了一下，你需要SurfaceView中thread处理，一般就需要有一个event queue的设计来保存touchevent，这会稍稍复杂一点，因为涉及到线程安全。
+
+4、如何让程序自动启动
+定义一个Braodcastreceiver，action为BOOT——COMPLETE，接受到广播后启动程序。
+
+Android系统启动过程，App启动过程从桌面点击到activity启动的过程
+
+1）.Launcher线程捕获onclick的点击事件，调用Launcher.startActivitySafely,进一步调用Launcher.startActivity，
+最后调用父类Activity的startActivity。
+
+2）.Activity和ActivityManagerService交互，引入Instrumentation，将启动请求交给Instrumentation，调用Instrumentation.execStartActivity。
+
+3）.调用ActivityManagerService的startActivity方法，这里做了进程切换。
+
+4）.开启Activity，调用onCreate方法
+
