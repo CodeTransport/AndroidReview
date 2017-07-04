@@ -86,8 +86,9 @@ ExampleFragment fragment = (ExampleFragment) getFragmentManager().findFragmentBy
 应用在5秒内未响应用户的输入事件（如按键或者触摸）
 
 BroadcastReceiver未在10秒内完成相关的处理
-
+前台广播10s超时，后台广播（默认是后台广播）60s超时，这还要看是无序广播还是有序广播，是动态注册还是静态注册。
 Service在特定的时间内无法处理完成 20秒
+
 以上情况就会发生ANR异常。
 7、注意点：
 Activity的onCreate和onResume回调中尽量避免耗时的代码
