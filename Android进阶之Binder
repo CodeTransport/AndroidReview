@@ -1,0 +1,36 @@
+Android提供了跨进程通信方式：IBinder.那该章就学习一下跨进程通信-IBinder机制
+在平常的开发过程中，当一个Activity需要跳转到另一个程序的Activity中，或者系统状态变化发送一条广播，然后在我们程序中定义广播接受者获取该条广播，又或者四大
+组件之一的ContentProvider是怎么把数据提供给别的应用的。这些都是用到了Binder机制。Binder是android中一种实现进程间通信（IPC）的方式之一。
+那Binder机制到底是什么呢？
+作者给出这段定义：
+In the Android platform, the binder is used for nearly everything that happens across processes in the core platform.
+
+看一下Binder的内部结构是什么样的： 
+
+Intent是最高一层的抽象，方便开发者进行常用的跨进程调用。
+AIDL（android interface definition language）对Binder的使用进行了封装，可以让开发者方便的进行方法的远程调用。
+Binder: binder属于一个驱动，工作在linux层面，运行在内核态，它的操作完成是基于一段内存，负责跨进程通信。Binder架构由服务端，binder驱动，
+客户端三个部分构成
+最底层是ashmen（Anonymous shared memoryy）机制，负责辅助实现内存的分配，以及跨进程所需要的内存共享。
+
+AIDL是android为了方便开发者进行远程方法调用，定义的一种语言。使用aidl完成一个远程方法调用只需要三个步骤：
+
+1.用aidl定义需要被调用方法接口。
+
+2.实现这些方法。
+
+3.调用这些方法。
+
+虽然简单三个步骤就能实现一个远程调用的方法，但其中包含的一些知识很值得去揣摩。
+
+第一步中定义一个aidl文件中包含一个接口，然后在接口中定义需要实现的方法。然后重要的是第二步，android会将该aidl生成一个java文件（如果你使用eclipse，
+会自动生成。在gen目录下。）然后生成一个aidl文件名的接口，暂时可以命名为IBinderService,在该接口中提供一个Stub的内部接口，该接口implements了
+IBinderService并且继承自android.os.Binder，当调用IBinderService.Stub方法返回一个Stub接口的时候，会调用一个特别重要的方法：asInterface():
+在该方法中，会去查询本地是否有一个IBinderService的实例，实际是查询是否是本地调用，如果是本地调用，就会返回该实例，然后调用本地方法。
+如果不存在，则会返回一个Proxy对象。Proxy是Stub的一个内部类，同样实现IBinderServie接口，但该类实现了接口中的方法。因此，当调用asInterface（）方法
+的时候，如果是远程调用，就会返回一个Proxy对象，从而进行远程调用。
+
+http://mp.weixin.qq.com/s/pPrfIq-8yV5CnbIIKprm7Q 该文比较浅显易懂的介绍了Binder的原理。
+
+
+
