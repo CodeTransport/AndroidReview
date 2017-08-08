@@ -8,6 +8,7 @@ In the Android platform, the binder is used for nearly everything that happens a
 看一下Binder的内部结构是什么样的： 
 
 Intent是最高一层的抽象，方便开发者进行常用的跨进程调用。
+从Android开发角度看，Binder是一个实现了Ibinder接口的类，充当多线程之间通信的一个信使。
 AIDL（android interface definition language）对Binder的使用进行了封装，可以让开发者方便的进行方法的远程调用。
 Binder: binder属于一个驱动，工作在linux层面，运行在内核态，它的操作完成是基于一段内存，负责跨进程通信。Binder架构由服务端，binder驱动，
 客户端三个部分构成
