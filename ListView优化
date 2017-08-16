@@ -1,0 +1,34 @@
+在平常的Android程序开发过程中，控件ListView可能频繁被用到。在常用的app软件中，ListView表现出良好的展示效果，经常被用来展示数据。
+虽然ListView应用的比较频繁，但该控件也是导致程序卡顿更有甚者导致ANR异常。因此需要一些技术来优化。
+
+ListView卡顿的原因以及优化策略：
+
+1.重用converView： 通过复用converview来减少不必要的view的创建，另外Infalte操作会把xml文件实例化成相应的View实例，属于IO操作，是耗时操作。
+
+2.减少findViewById()操作： 将xml文件中的元素封装成viewholder静态类，通过converview的setTag和getTag方法将view与相应的holder对象绑定在一起，
+避免不必要的findviewbyid操作
+
+3.避免在 getView 方法中做耗时的操作: 例如加载本地 Image 需要载入内存以及解析 Bitmap，或者加载的自定义View比较复杂，都是比较耗时的操作。
+当用户快速滑动listview的时候，如果不设置为滑动停止时再执行加载操作，就很容易导致卡顿现象。
+
+4. Item的布局层次结构尽量简单，避免布局太深或者不必要的重绘。意思是ListView中的每个Item，当执行某些操作然后更新该ListView的时候会重新绘制。
+因此，每一个Item要尽量层次结构简单，避免不必要的绘制，引入无效的操作。反而加重程序处理操作。
+
+5.尽量能保证 Adapter 的 hasStableIds() 返回 true 这样在 notifyDataSetChanged() 的时候，如果item内容并没有变化，ListView 将不会重新绘制这个 View。
+该优化在控件RecycleListView 中可以通过设置局部刷新操作而达到优化效果。
+
+6.在一些场景中，ScollView内会包含多个ListView，可以把listview的高度写死固定下来。 由于ScollView在快速滑动过程中需要大量计算每一个listview的高度，
+阻塞了UI线程导致卡顿现象出现，如果我们每一个item的高度都是均匀的，可以通过计算把listview的高度确定下来，避免卡顿现象出现.
+
+7.ListView 中元素避免半透明： 半透明绘制需要大量乘法计算，在滑动时不停重绘会造成大量的计算，在比较差的机子上会比较卡。 在设计上能不半透明就不不半透明。
+实在要弄就把在滑动的时候把半透明设置成不透明，滑动完再重新设置成半透明。
+
+8.尽量开启硬件加速： 硬件加速提升巨大，避免使用一些不支持的函数导致含泪关闭某个地方的硬件加速。当然这一条不只是对 ListView。
+
+除上面介绍的以外，还有一个比较常用来缓存Item属性的类叫ViewHolder.ViewHolder声明成ListView的静态内部类
+
+    非静态内部类会隐式持有外部类的引用，就像大家经常将自定义的adapter在Activity类里，然后在adapter类里面是可以随意调用外部activity的方法的。
+
+    当你将内部类定义为static时，你就调用不了外部类的实例方法了，因为这时候静态内部类是不持有外部类的引用的。声明ViewHolder静态内部类，
+    可以将ViewHolder和外部类解引用。
+
